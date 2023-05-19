@@ -77,3 +77,13 @@ jobs:
                       --yes \
                       --output yaml \
                       --verbose
+
+            # install flux cd onto the cluster
+            - name: Install Flux CD
+              run: |
+                  az capi flux install \
+                      --name ${{ inputs.control_plane_name }} \
+                      --resource-group ${{ inputs.resource_group_name }} \
+                      --yes \
+                      --output yaml \
+                      --verbose
