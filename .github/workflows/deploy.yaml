@@ -17,7 +17,7 @@ on:
 jobs:
     deploy-dev:
         name: Development
-        uses: samirbanjaonvic/infrastructure-platform/.github/workflows/templates/control-plane-template.yml@main
+        uses: samirbanjaonvic/infrastructure-platform/.github/workflows/control-plane-template.yml@main
         with:
             Environment: development
         secrets: inherit
