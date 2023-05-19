@@ -1,0 +1,79 @@
+name: Infrastructure Deploy Template
+
+# make the template reusable for other projects
+on:
+    workflow_call:
+        inputs:
+            environment:
+                type: string
+                description: Environment used for the deployment
+                required: true
+            resource_group_name:
+                type: string
+                description: Name of the resource group
+                required: true
+            location:
+                type: string
+                description: Location of the resource group
+                required: true
+            control_plane_name:
+                type: string
+                description: Name of the control plane
+                required: true            
+            k8s_version:
+                type: string
+                description: K8S Version of the control plane
+                required: true            
+            az_capi_version:
+                type: string
+                description: Azure CAPI version used for the deployment
+                required: true
+        secrets:
+            AZURE_CREDENTIALS:
+                description: Azure Service Principal used for the deployment
+                required: true
+
+jobs:
+    deploy-control-plane:
+        runs-on: ubuntu-latest
+        name: Deploy Control Plane
+        environment: ${{ inputs.environment }}
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
+
+            # login to azure
+            - name: Login to Azure
+              uses: azure/login@v1
+              with:
+                  creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+            # install az capi extension
+            - name: Install az capi extension
+              run: az extension add --source https://github.com/Azure/azure-capi-cli-extension/releases/download/v${{inputs.az_capi_version}}/capi-${{inputs.az_capi_version}}-py2.py3-none-any.whl
+
+            # create the resource group
+            - name: Create Resource Group
+              run: |
+                  az group create \
+                      --name ${{ inputs.resource_group_name }} \
+                      --location ${{ inputs.location }} \
+                      --output yaml \
+                      --verbose
+
+            # create the control plane using capi
+            - name: Create Control Plane
+              run: |
+                  az capi create \
+                      --name ${{ inputs.control_plane_name }} \
+                      --kubernetes-version ${{ inputs.k8s_version }} \
+                      --location  ${{ inputs.location }} \
+                      --resource-group ${{ inputs.resource_group_name }} \
+                      --vent-name '${{ inputs.control_plane_name }}-vent' \
+                      --node-machine-count 1
+                      --node-machine-type 
+                      --machinepool \
+                      --yes \
+                      --output yaml \
+                      --verbose
