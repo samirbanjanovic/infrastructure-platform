@@ -6,31 +6,7 @@ on:
         inputs:
             environment:
                 type: string
-                description: Environment used for the deployment
-                required: true
-            resource_group_name:
-                type: string
-                description: Name of the resource group
-                required: true
-            location:
-                type: string
-                description: Location of the resource group
-                required: true
-            control_plane_name:
-                type: string
-                description: Name of the control plane
-                required: true            
-            k8s_version:
-                type: string
-                description: K8S Version of the control plane
-                required: true            
-            az_capi_version:
-                type: string
-                description: Azure CAPI version used for the deployment
-                required: true
-        secrets:
-            AZURE_CREDENTIALS:
-                description: Azure Service Principal used for the deployment
+                description: Environment used for the deployment. This must be configured in the environment section of the repository
                 required: true
 
 jobs:
@@ -51,14 +27,14 @@ jobs:
 
             # install az capi extension
             - name: Install az capi extension
-              run: az extension add --source https://github.com/Azure/azure-capi-cli-extension/releases/download/v${{inputs.az_capi_version}}/capi-${{inputs.az_capi_version}}-py2.py3-none-any.whl
+              run: az extension add --source https://github.com/Azure/azure-capi-cli-extension/releases/download/v${{vars.AZ_CAPI_VERSION}}/capi-${{vars.AZ_CAPI_VERSION}}-py2.py3-none-any.whl
 
             # create the resource group
             - name: Create Resource Group
               run: |
                   az group create \
-                      --name ${{ inputs.resource_group_name }} \
-                      --location ${{ inputs.location }} \
+                      --name ${{ vars.RESOURCE_GROUP_NAME }} \
+                      --location ${{ vars.LOCATION }} \
                       --output yaml \
                       --verbose
 
@@ -66,11 +42,11 @@ jobs:
             - name: Create Control Plane
               run: |
                   az capi create \
-                      --name ${{ inputs.control_plane_name }} \
-                      --kubernetes-version ${{ inputs.k8s_version }} \
-                      --location  ${{ inputs.location }} \
-                      --resource-group ${{ inputs.resource_group_name }} \
-                      --vent-name '${{ inputs.control_plane_name }}-vent' \
+                      --name ${{ vars.CONTROL_PLANE_NAME }} \
+                      --kubernetes-version ${{ vars.K8S_VERSION}} \
+                      --location  ${{ vars.LOCATION}} \
+                      --resource-group ${{ vars.RESOURCE_GROUP_NAME}} \
+                      --vent-name '${{ vars.CONTROL_PLANE_NAME }}-vnet' \
                       --node-machine-count 1
                       --node-machine-type 
                       --machinepool \
@@ -81,9 +57,12 @@ jobs:
             # install flux cd onto the cluster
             - name: Install Flux CD
               run: |
-                  az capi flux install \
-                      --name ${{ inputs.control_plane_name }} \
-                      --resource-group ${{ inputs.resource_group_name }} \
-                      --yes \
-                      --output yaml \
-                      --verbose
+                az k8s-configuration \
+                    --cluster-name ${{ vars.CONTROL_PLANE_NAME }} \
+                    --cluster-type managedClusters \
+                    --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
+                    --url ${{ github.repositoryUrl }} \
+                    --yes \
+                    --output yaml \
+                    --verbose
+
