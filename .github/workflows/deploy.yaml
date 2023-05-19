@@ -1,0 +1,23 @@
+name: Deploy Infrastructure
+
+# trigger workflow manually from the Actions tab
+on:
+    workflow_dispatch:
+        inputs:
+            logLevel:
+                description: 'Log level'
+                required: true
+                default: 'warning'
+                type: choice
+                options:
+                - info
+                - warning
+                - debug
+
+jobs:
+    deploy-dev:
+        name: Development
+        uses: samirbanjaonvic/infrastructure-platform/.github/workflows/templates/control-plane-template.yml@main
+        with:
+            Environment: development
+        secrets: inherit
