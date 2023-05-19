@@ -2,67 +2,68 @@ name: Infrastructure Deploy Template
 
 # make the template reusable for other projects
 on:
-    workflow_call:
-        inputs:
-            environment:
-                type: string
-                description: Environment used for the deployment. This must be configured in the environment section of the repository
-                required: true
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        description: Environment used for the deployment. This must be configured in the environment section of the repository
+        required: true
 
 jobs:
-    deploy-control-plane:
-        runs-on: ubuntu-latest
-        name: Deploy Control Plane
-        environment: ${{ inputs.environment }}
+  deploy-control-plane:
+    runs-on: ubuntu-latest
+    name: Deploy Control Plane
+    environment: ${{ inputs.environment }}
 
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
 
-            # login to azure
-            - name: Login to Azure
-              uses: azure/login@v1
-              with:
-                  creds: ${{ secrets.AZURE_CREDENTIALS }}
+      # login to azure
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-            # install az capi extension
-            - name: Install az capi extension
-              run: az extension add --source https://github.com/Azure/azure-capi-cli-extension/releases/download/v${{vars.AZ_CAPI_VERSION}}/capi-${{vars.AZ_CAPI_VERSION}}-py2.py3-none-any.whl
+      # install az capi extension
+      - name: Install az capi extension
+        run: az extension add --source https://github.com/Azure/azure-capi-cli-extension/releases/download/v${{vars.AZ_CAPI_VERSION}}/capi-${{vars.AZ_CAPI_VERSION}}-py2.py3-none-any.whl
 
-            # create the resource group
-            - name: Create Resource Group
-              run: |
-                  az group create \
-                      --name ${{ vars.RESOURCE_GROUP_NAME }} \
-                      --location ${{ vars.LOCATION }} \
-                      --output yaml \
-                      --verbose
+      # create the resource group
+      - name: Create Resource Group
+        run: |
+          az group create \
+            --name ${{ vars.RESOURCE_GROUP_NAME }} \
+            --location ${{ vars.LOCATION }} \
+            --output yaml \
+            --verbose
 
-            # create the control plane using capi
-            - name: Create Control Plane
-              run: |
-                  az capi create \
-                      --name ${{ vars.CONTROL_PLANE_NAME }} \
-                      --kubernetes-version ${{ vars.K8S_VERSION}} \
-                      --location  ${{ vars.LOCATION}} \
-                      --resource-group ${{ vars.RESOURCE_GROUP_NAME}} \
-                      --vent-name '${{ vars.CONTROL_PLANE_NAME }}-vnet' \
-                      --node-machine-count 1
-                      --node-machine-type 
-                      --machinepool \
-                      --yes \
-                      --output yaml \
-                      --verbose
+      # create the control plane using capi
+      - name: Create Control Plane
+        run: |
+          az capi create \
+            --name ${{ vars.CONTROL_PLANE_NAME }} \
+            --kubernetes-version ${{ vars.K8S_VERSION}} \
+            --location  ${{ vars.LOCATION}} \
+            --resource-group ${{ vars.RESOURCE_GROUP_NAME}} \
+            --vent-name '${{ vars.CONTROL_PLANE_NAME }}-vnet' \
+            --node-machine-count 1
+            --node-machine-type 
+            --machinepool \
+            --yes \
+            --output yaml \
+            --verbose
 
-            # install flux cd onto the cluster
-            - name: Install Flux CD
-              run: |
-                az k8s-configuration \
-                    --cluster-name ${{ vars.CONTROL_PLANE_NAME }} \
-                    --cluster-type managedClusters \
-                    --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
-                    --url ${{ github.repositoryUrl }} \
-                    --yes \
-                    --output yaml \
-                    --verbose
+      # install flux cd onto the cluster
+      - name: Install Flux CD
+        run: |
+          az k8s-configuration \
+            --cluster-name ${{ vars.CONTROL_PLANE_NAME }} \
+            --cluster-type managedClusters \
+            --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
+            --url ${{ github.repositoryUrl }} \
+            --yes \
+            --output yaml \
+            --verbose
 
