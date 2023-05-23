@@ -63,10 +63,11 @@ jobs:
             --generate-ssh-keys \
             --network-dataplane azure \
             --network-plugin azure \
-            --node-vm-size Standard_B2s \
+            --node-vm-size Standard_D2s_v3 \
+            --node-count 1 \
             --node-osdisk-type Ephemeral \
             --node-osdisk-size 48 \
-            --os-sku Mariner \
+            --os-sku AzureLinux \
             --verbose
           az aks get-credentials -n ${{ vars.CONTROL_PLANE_NAME }} -g ${{ vars.RESOURCE_GROUP_NAME }}
           export AZURE_SUBSCRIPTION_ID_B64="$(echo -n "$AZURE_SUBSCRIPTION_ID" | base64 | tr -d '\n')"
@@ -98,7 +99,8 @@ jobs:
             --cluster-type managedClusters \
             --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
             --url ${{ github.repositoryUrl }} \
+            --branch main \
+            --kustomization name=${{ vars.CONTROL_PLANE_NAME }}-kustomization
+            --path '/' \
             --output yaml \
-            --verbose \
-            --yes
-
+            --verbose
