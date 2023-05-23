@@ -60,6 +60,7 @@ jobs:
             --name ${{ vars.CONTROL_PLANE_NAME }} \
             --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
             --location ${{ vars.LOCATION }} \
+            --generate-ssh-keys \
             --network-dataplane azure \
             --network-plugin azure \
             --node-vm-size Standard_B2s \
