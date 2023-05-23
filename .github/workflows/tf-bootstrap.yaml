@@ -1,0 +1,54 @@
+# This workflow bootstraps the terraform infrastructure by creating a storage account
+name: Bootstrap Infrastructure
+defaults:
+  run:
+    # run from the "terraform/bootstrap" directory
+    working-directory: terraform/bootstrap/
+    
+# Controls when the workflow will run
+on: 
+  # this workflow only runs manually
+  workflow_dispatch:
+
+jobs:
+  deploy:
+
+    # environment variables used in this job
+    # load the variables from the github secrets
+    env: 
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+    
+    # the type of runner the job will use
+    runs-on: ubuntu-latest
+
+    # the sequence of steps for this job
+    steps:
+
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v3
+
+    # Install Terraform
+    - uses: hashicorp/setup-terraform@v2
+
+    # Initialize Terraform
+    - name: Terraform Init
+      id: init
+      run: terraform init
+
+    # Validate Terraform
+    - name: Terraform Validate
+      id: validate
+      run: terraform validate -no-color
+
+    # Plan Terraform
+    - name: Terraform Plan
+      id: plan
+      run: terraform plan -no-color
+
+    # Deploy Terraform
+    - name: Terraform Apply
+      id: apply
+      run: terraform apply -no-color -auto-approve
