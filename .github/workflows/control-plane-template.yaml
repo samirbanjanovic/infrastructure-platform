@@ -31,45 +31,47 @@ jobs:
         run: az extension add --source https://github.com/Azure/azure-capi-cli-extension/releases/download/v${{vars.AZ_CAPI_VERSION}}/capi-${{vars.AZ_CAPI_VERSION}}-py2.py3-none-any.whl --verbose --yes
 
       # install clusterctl 
-      - name: Check image
+      - name: Install cubectl
         run: |
-          uname -a
+          curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.4.2/clusterctl-linux-amd64 -o clusterctl
+          sudo install -o root -g root -m 0755 clusterctl /usr/local/bin/clusterctl
+          clusterctl version
 
-      # # create the resource group
-      # - name: Create Resource Group
-      #   run: |
-      #     az group create \
-      #       --name ${{ vars.RESOURCE_GROUP_NAME }} \
-      #       --location ${{ vars.LOCATION }} \
-      #       --output yaml \
-      #       --verbose
+      # create the resource group
+      - name: Create Resource Group
+        run: |
+          az group create \
+            --name ${{ vars.RESOURCE_GROUP_NAME }} \
+            --location ${{ vars.LOCATION }} \
+            --output yaml \
+            --verbose
 
-      # # create the control plane using capi
-      # - name: Create Control Plane
-      #   run: |
-      #     az capi management create \
-      #       --cluster-name ${{ vars.CONTROL_PLANE_NAME }} \
-      #       --location ${{ vars.LOCATION }} \
-      #       --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
-      #       --yes \
-      #       --output yaml \
-      #       --verbose
-      #   env:
-      #     AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      #     AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-      #     AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-      #     AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      # create the control plane using capi
+      - name: Create Control Plane
+        run: |
+          az capi management create \
+            --cluster-name ${{ vars.CONTROL_PLANE_NAME }} \
+            --location ${{ vars.LOCATION }} \
+            --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
+            --yes \
+            --output yaml \
+            --verbose
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # # install flux cd onto the cluster
-      # - name: Install Flux CD
-      #   run: |
-      #     az k8s-configuration flux create \
-      #       --name '${{ vars.CONTROL_PLANE_NAME }}-flux' \
-      #       --cluster-name ${{ vars.CONTROL_PLANE_NAME }} \
-      #       --cluster-type managedClusters \
-      #       --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
-      #       --url ${{ github.repositoryUrl }} \
-      #       --output yaml \
-      #       --verbose \
-      #       --yes
+      # install flux cd onto the cluster
+      - name: Install Flux CD
+        run: |
+          az k8s-configuration flux create \
+            --name '${{ vars.CONTROL_PLANE_NAME }}-flux' \
+            --cluster-name ${{ vars.CONTROL_PLANE_NAME }} \
+            --cluster-type managedClusters \
+            --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
+            --url ${{ github.repositoryUrl }} \
+            --output yaml \
+            --verbose \
+            --yes
 
