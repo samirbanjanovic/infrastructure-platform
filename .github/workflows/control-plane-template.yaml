@@ -38,6 +38,12 @@ jobs:
             --location ${{ vars.LOCATION }} \
             --output yaml \
             --verbose
+      
+      # install clusterctl 
+      - name: Install Clusterctl
+        run: |
+          brew install clusterctl
+          clusterctl version
 
       # create the control plane using capi
       - name: Create Control Plane
