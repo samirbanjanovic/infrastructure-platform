@@ -57,19 +57,24 @@ jobs:
           #   --output yaml \
           #   --verbose
           az extension add --name aks-preview -y
-          az aks create \
-            --name ${{ vars.CONTROL_PLANE_NAME }} \
-            --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
-            --location ${{ vars.LOCATION }} \
-            --generate-ssh-keys \
-            --network-dataplane azure \
-            --network-plugin azure \
-            --node-vm-size Standard_D2s_v3 \
-            --node-count 1 \
-            --node-osdisk-type Ephemeral \
-            --node-osdisk-size 48 \
-            --os-sku AzureLinux \
-            --verbose
+          az aks list -g ${{ vars.RESOURCE_GROUP_NAME }}
+          if [ $? -eq 0 ]; then
+            echo "AKS cluster already exists"
+          else
+            az aks create \
+              --name ${{ vars.CONTROL_PLANE_NAME }} \
+              --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
+              --location ${{ vars.LOCATION }} \
+              --generate-ssh-keys \
+              --network-dataplane azure \
+              --network-plugin azure \
+              --node-vm-size Standard_D2s_v3 \
+              --node-count 1 \
+              --node-osdisk-type Ephemeral \
+              --node-osdisk-size 48 \
+              --os-sku AzureLinux \
+              --verbose
+          fi
           az aks get-credentials -n ${{ vars.CONTROL_PLANE_NAME }} -g ${{ vars.RESOURCE_GROUP_NAME }}
           export AZURE_SUBSCRIPTION_ID_B64="$(echo -n "$AZURE_SUBSCRIPTION_ID" | base64 | tr -d '\n')"
           export AZURE_TENANT_ID_B64="$(echo -n "$AZURE_TENANT_ID" | base64 | tr -d '\n')"
