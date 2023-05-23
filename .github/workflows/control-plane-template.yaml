@@ -28,7 +28,7 @@ jobs:
 
       # install az capi extension
       - name: Install az capi extension
-        run: az extension add --source https://github.com/Azure/azure-capi-cli-extension/releases/download/v${{vars.AZ_CAPI_VERSION}}/capi-${{vars.AZ_CAPI_VERSION}}-py2.py3-none-any.whl
+        run: az extension add --source https://github.com/Azure/azure-capi-cli-extension/releases/download/v${{vars.AZ_CAPI_VERSION}}/capi-${{vars.AZ_CAPI_VERSION}}-py2.py3-none-any.whl --verbose --yes
 
       # create the resource group
       - name: Create Resource Group
