@@ -42,18 +42,13 @@ jobs:
       # create the control plane using capi
       - name: Create Control Plane
         run: |
-          az capi create \
-            --name ${{ vars.CONTROL_PLANE_NAME }} \
-            --kubernetes-version ${{ vars.K8S_VERSION}} \
-            --location  ${{ vars.LOCATION}} \
-            --resource-group ${{ vars.RESOURCE_GROUP_NAME}} \
-            --vnet-name '${{ vars.CONTROL_PLANE_NAME }}-vnet' \
-            --node-machine-count 1 \
-            --node-machine-type Standard_D2s_v3 \
-            --machinepool \
-            --yes \
+          az capi management create \
+            --cluster-name ${{ vars.CONTROL_PLANE_NAME }} \
+            --location ${{ vars.LOCATION }} \
+            --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
             --output yaml \
-            --verbose
+            --verbose \
+            --yes            
         env:
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
@@ -69,7 +64,7 @@ jobs:
             --cluster-type managedClusters \
             --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
             --url ${{ github.repositoryUrl }} \
-            --yes \
             --output yaml \
-            --verbose
+            --verbose \
+            --yes
 
