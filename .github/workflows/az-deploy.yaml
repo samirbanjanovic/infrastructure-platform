@@ -1,4 +1,4 @@
-name: Deploy Infrastructure
+name: AZ Deploy Infrastructure
 
 # trigger workflow manually from the Actions tab
 on:

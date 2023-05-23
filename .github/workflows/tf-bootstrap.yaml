@@ -1,5 +1,5 @@
 # This workflow bootstraps the terraform infrastructure by creating a storage account
-name: Bootstrap Infrastructure
+name: TF Bootstrap Infrastructure
 defaults:
   run:
     # run from the "terraform/bootstrap" directory
