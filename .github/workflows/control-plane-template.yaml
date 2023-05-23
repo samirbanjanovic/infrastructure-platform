@@ -56,7 +56,6 @@ jobs:
           #   --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
           #   --output yaml \
           #   --verbose
-          az upgrade -y
           az extension add --name aks-preview
           az aks create \
             --name ${{ vars.CONTROL_PLANE_NAME }} \
