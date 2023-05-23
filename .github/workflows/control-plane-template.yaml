@@ -49,7 +49,7 @@ jobs:
             --resource-group ${{ vars.RESOURCE_GROUP_NAME}} \
             --vnet-name '${{ vars.CONTROL_PLANE_NAME }}-vnet' \
             --node-machine-count 1 \
-            --node-machine-type \
+            --node-machine-type Standard_D2s_v3 \
             --machinepool \
             --yes \
             --output yaml \
