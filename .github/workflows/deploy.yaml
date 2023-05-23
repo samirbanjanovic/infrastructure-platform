@@ -17,7 +17,7 @@ on:
 jobs:
     deploy-dev:
         name: Development
-        uses: ./.github/workflows/control-plane-template
+        uses: ./.github/workflows/control-plane-template.yaml
         with:
             Environment: development
         secrets: inherit
