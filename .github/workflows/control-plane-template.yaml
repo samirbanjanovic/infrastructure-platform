@@ -47,7 +47,7 @@ jobs:
             --kubernetes-version ${{ vars.K8S_VERSION}} \
             --location  ${{ vars.LOCATION}} \
             --resource-group ${{ vars.RESOURCE_GROUP_NAME}} \
-            --vent-name '${{ vars.CONTROL_PLANE_NAME }}-vnet' \
+            --vnet-name '${{ vars.CONTROL_PLANE_NAME }}-vnet' \
             --node-machine-count 1
             --node-machine-type 
             --machinepool \
