@@ -105,14 +105,16 @@ jobs:
       # install flux cd onto the cluster
       - name: Install Flux CD
         run: |          
+          echo '${{ github.repositoryUrl }}'
           az k8s-configuration flux create \
             --name '${{ vars.CONTROL_PLANE_NAME }}-flux' \
             --cluster-name ${{ vars.CONTROL_PLANE_NAME }} \
             --cluster-type managedClusters \
             --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
-            --url ${{ github.repositoryUrl }} \
+            --url '${{ github.repositoryUrl }}' \
             --branch main \
-            --kustomization name=${{ vars.CONTROL_PLANE_NAME }}-kustomization
+            --kustomization name=${{ vars.CONTROL_PLANE_NAME }}-kustomization \
             --path '/' \
             --output yaml \
             --verbose
+            --yes
