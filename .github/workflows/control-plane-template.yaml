@@ -32,6 +32,7 @@ jobs:
           az extension add --source https://github.com/Azure/azure-capi-cli-extension/releases/download/v${{vars.AZ_CAPI_VERSION}}/capi-${{vars.AZ_CAPI_VERSION}}-py2.py3-none-any.whl --verbose --yes
           az capi install -a
           az extension add --name aks-preview -y
+          az extension add --name k8s-configuration -y
 
       # create the resource group
       - name: Create Resource Group
@@ -72,7 +73,7 @@ jobs:
 
           # Check if the secret alrady exists and if it does skip creating it
           kubectl get secret "$AZURE_CLUSTER_IDENTITY_SECRET_NAME" --namespace "$AZURE_CLUSTER_IDENTITY_SECRET_NAMESPACE"
-
+          echo $?
           if [ $? -eq 0]; then
             echo "Secret $AZURE_CLUSTER_IDENTITY_SECRET_NAME already exists"
           else
@@ -103,8 +104,7 @@ jobs:
 
       # install flux cd onto the cluster
       - name: Install Flux CD
-        run: |
-          az extension add --name k8s-configuration -y
+        run: |          
           az k8s-configuration flux create \
             --name '${{ vars.CONTROL_PLANE_NAME }}-flux' \
             --cluster-name ${{ vars.CONTROL_PLANE_NAME }} \
