@@ -71,11 +71,11 @@ jobs:
           az aks get-credentials -n ${{ vars.CONTROL_PLANE_NAME }} -g ${{ vars.RESOURCE_GROUP_NAME }}
 
           # Check if the secret alrady exists and if it does skip creating it
-          # kubectl get secrets --namespace "$AZURE_CLUSTER_IDENTITY_SECRET_NAMESPACE" | grep  "$AZURE_CLUSTER_IDENTITY_SECRET_NAME" 
+          kubectl get secrets --namespace "$AZURE_CLUSTER_IDENTITY_SECRET_NAMESPACE" | grep  "$AZURE_CLUSTER_IDENTITY_SECRET_NAME" 
 
-          # if [ $? -eq 0]; then
-          #   echo "Secret $AZURE_CLUSTER_IDENTITY_SECRET_NAME already exists"
-          # else
+          if [ $? -eq 0]; then
+            echo "Secret $AZURE_CLUSTER_IDENTITY_SECRET_NAME already exists"
+          else
             # Create a secret to include the password of the Service Principal identity created in Azure
             # This secret will be referenced by the AzureClusterIdentity used by the AzureCluster
             kubectl create secret generic "$AZURE_CLUSTER_IDENTITY_SECRET_NAME" \
@@ -83,7 +83,7 @@ jobs:
               --namespace "$AZURE_CLUSTER_IDENTITY_SECRET_NAMESPACE"
 
             clusterctl init --infrastructure azure
-          #fi          
+          fi          
         env:
           # environment variables used to configure clusterctl
           # to run off an aks cluster
@@ -108,7 +108,7 @@ jobs:
           az k8s-configuration flux create \
             --name '${{ vars.CONTROL_PLANE_NAME }}-flux' \
             --cluster-name ${{ vars.CONTROL_PLANE_NAME }} \
-            --cluster-typeMojodo12 managedClusters \
+            --cluster-type managedClusters \
             --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
             --url ${{ github.repositoryUrl }} \
             --branch main \
