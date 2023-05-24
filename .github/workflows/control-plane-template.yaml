@@ -48,8 +48,7 @@ jobs:
           echo  "Checking if AKS cluster of name ${{ vars.CONTROL_PLANE_NAME }} already exists"
 
           az aks list -g ${{ vars.RESOURCE_GROUP_NAME }} --query "[?name=='${{ vars.CONTROL_PLANE_NAME }}']"
-          if [ $? -eq 0 ]
-          then
+          if [ $? -eq 0 ]; then          
             echo "AKS cluster ${{ vars.CONTROL_PLANE_NAME }} already exists"
           else
             az aks create \
