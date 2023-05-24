@@ -42,7 +42,7 @@ jobs:
             --output yaml \
             --verbose
 
-      - name: Create Cluster If Needed
+      - name: Create Management Clsuter
         run: |
           echo  "Checking if AKS cluster of name ${{ vars.CONTROL_PLANE_NAME }} already exists"
 
@@ -66,15 +66,15 @@ jobs:
           fi
 
       # create the control plane using capi
-      - name: Init clusterctl if needed
+      - name: Init clusterctl
         run: |
           az aks get-credentials -n ${{ vars.CONTROL_PLANE_NAME }} -g ${{ vars.RESOURCE_GROUP_NAME }}
 
           # Create a secret to include the password of the Service Principal identity created in Azure
           # This secret will be referenced by the AzureClusterIdentity used by the AzureCluster
-          kubectl create secret generic "$env:AZURE_CLUSTER_IDENTITY_SECRET_NAME" \
-            --from-literal=clientSecret="$env:AZURE_CLIENT_SECRET" \
-            --namespace "$env:AZURE_CLUSTER_IDENTITY_SECRET_NAMESPACE"
+          kubectl create secret generic "$AZURE_CLUSTER_IDENTITY_SECRET_NAME" \
+            --from-literal=clientSecret="$AZURE_CLIENT_SECRET" \
+            --namespace "$AZURE_CLUSTER_IDENTITY_SECRET_NAMESPACE"
 
           if [ $? -eq 0 ]; then
             echo "CAPZ management cluster identity secret already exists. Skipping clusterctl init."
