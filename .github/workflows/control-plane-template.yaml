@@ -24,18 +24,14 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v1
         with:
-          creds: '${{ secrets.AZURE_CREDENTIALS }}'
+          creds: "${{ secrets.AZURE_CREDENTIALS }}"
 
       # install az capi extension
-      - name: Install az capi extension
-        run: az extension add --source https://github.com/Azure/azure-capi-cli-extension/releases/download/v${{vars.AZ_CAPI_VERSION}}/capi-${{vars.AZ_CAPI_VERSION}}-py2.py3-none-any.whl --verbose --yes
-
-      # # install clusterctl 
-      # - name: Install cubectl
-      #   run: |
-      #     curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.4.2/clusterctl-linux-amd64 -o clusterctl
-      #     sudo install -o root -g root -m 0755 clusterctl /usr/local/bin/clusterctl
-      #     clusterctl version
+      - name: Install Extensions
+        run: |
+          az extension add --source https://github.com/Azure/azure-capi-cli-extension/releases/download/v${{vars.AZ_CAPI_VERSION}}/capi-${{vars.AZ_CAPI_VERSION}}-py2.py3-none-any.whl --verbose --yes
+          az capi install -a
+          az extension add --name aks-preview -y
 
       # create the resource group
       - name: Create Resource Group
@@ -46,20 +42,13 @@ jobs:
             --output yaml \
             --verbose
 
-      # create the control plane using capi
-      - name: Create Control Plane
+      - name: Create Cluster If Needed
         run: |
-          az capi install -a
-          # az capi management create \
-          #   --cluster-name ${{ vars.CONTROL_PLANE_NAME }} \
-          #   --location ${{ vars.LOCATION }} \
-          #   --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
-          #   --output yaml \
-          #   --verbose
-          az extension add --name aks-preview -y
-          az aks list -g ${{ vars.RESOURCE_GROUP_NAME }}
+          echo  "Checking if AKS cluster of name ${{ vars.CONTROL_PLANE_NAME }} already exists"
+
+          az aks list -g ${{ vars.RESOURCE_GROUP_NAME }} --query "[?name=='${{ vars.CONTROL_PLANE_NAME }}']"
           if [ $? -eq 0 ]; then
-            echo "AKS cluster already exists"
+            echo "AKS cluster ${{ vars.CONTROL_PLANE_NAME }} already exists"
           else
             az aks create \
               --name ${{ vars.CONTROL_PLANE_NAME }} \
@@ -75,25 +64,34 @@ jobs:
               --os-sku AzureLinux \
               --verbose
           fi
-          az aks get-credentials -n ${{ vars.CONTROL_PLANE_NAME }} -g ${{ vars.RESOURCE_GROUP_NAME }}
-          export AZURE_SUBSCRIPTION_ID_B64="$(echo -n "$AZURE_SUBSCRIPTION_ID" | base64 | tr -d '\n')"
-          export AZURE_TENANT_ID_B64="$(echo -n "$AZURE_TENANT_ID" | base64 | tr -d '\n')"
-          export AZURE_CLIENT_ID_B64="$(echo -n "$AZURE_CLIENT_ID" | base64 | tr -d '\n')"
-          export AZURE_CLIENT_SECRET_B64="$(echo -n "$AZURE_CLIENT_SECRET" | base64 | tr -d '\n')"
 
-          # Settings needed for AzureClusterIdentity used by the AzureCluster
-          export AZURE_CLUSTER_IDENTITY_SECRET_NAME="cluster-identity-secret"
-          export CLUSTER_IDENTITY_NAME="cluster-identity"
-          export AZURE_CLUSTER_IDENTITY_SECRET_NAMESPACE="default"
+      # create the control plane using capi
+      - name: Init clusterctl if needed
+        run: |
+          az aks get-credentials -n ${{ vars.CONTROL_PLANE_NAME }} -g ${{ vars.RESOURCE_GROUP_NAME }}
 
           # Create a secret to include the password of the Service Principal identity created in Azure
           # This secret will be referenced by the AzureClusterIdentity used by the AzureCluster
-          kubectl create secret generic "${AZURE_CLUSTER_IDENTITY_SECRET_NAME}" --from-literal=clientSecret="${AZURE_CLIENT_SECRET}" --namespace "${AZURE_CLUSTER_IDENTITY_SECRET_NAMESPACE}"
+          kubectl create secret generic "$env:AZURE_CLUSTER_IDENTITY_SECRET_NAME" \
+            --from-literal=clientSecret="$env:AZURE_CLIENT_SECRET" \
+            --namespace "$env:AZURE_CLUSTER_IDENTITY_SECRET_NAMESPACE"
+
           if [ $? -eq 0 ]; then
             echo "CAPZ management cluster identity secret already exists. Skipping clusterctl init."
           else
             clusterctl init --infrastructure azure
         env:
+          # environment variables used to configure clusterctl
+          # to run off an aks cluster
+          AZURE_CLUSTER_IDENTITY_SECRET_NAME: 'cluster-identity-secret'
+          CLUSTER_IDENTITY_NAME: 'cluster-identity'
+          AZURE_CLUSTER_IDENTITY_SECRET_NAMESPACE: 'default'
+          AZURE_CONTROL_PLANE_MACHINE_TYPE: 'Standard_D2s_v3'
+          AZURE_NODE_MACHINE_TYPE: 'Standard_D2s_v3'
+          AZURE_RESOURCE_GROUP: ${{ vars.RESOURCE_GROUP_NAME }}
+          EXP_MACHINE_POOL: 'true'
+          EXP_AKS_RESOURCE_HEALTH: 'true'
+          WORKER_MACHINE_COUNT: '2'
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
