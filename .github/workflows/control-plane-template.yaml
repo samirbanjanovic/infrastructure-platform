@@ -116,7 +116,6 @@ jobs:
             --url $REPO_URL \
             --branch main \
             --kustomization name=${{ vars.CONTROL_PLANE_NAME }}-kustomization \
-            --path '/' \
             --output yaml \
             --verbose
             --yes
