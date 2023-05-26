@@ -56,10 +56,14 @@ jobs:
               --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
               --location ${{ vars.LOCATION }} \
               --generate-ssh-keys \
+              --max-pods 100 \
               --network-dataplane azure \
               --network-plugin azure \
               --node-vm-size Standard_D2s_v3 \
               --node-count 1 \
+              --enable-cluster-autoscaler true \
+              --min-count 1 \
+              --max-count 3 \
               --node-osdisk-type Ephemeral \
               --node-osdisk-size 48 \
               --os-sku AzureLinux \
@@ -115,7 +119,4 @@ jobs:
             --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
             --url $REPO_URL \
             --branch main \
-            --kustomization name=${{ vars.CONTROL_PLANE_NAME }}-kustomization \
-            --output yaml \
-            --verbose
-            --yes
+            --kustomization name=${{ vars.CONTROL_PLANE_NAME }}-kustomization
