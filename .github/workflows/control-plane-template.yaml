@@ -34,16 +34,7 @@ jobs:
           az extension add --name aks-preview -y
           az extension add --name k8s-configuration -y
 
-      # create the resource group
-      - name: Create Resource Group
-        run: |
-          az group create \
-            --name ${{ vars.RESOURCE_GROUP_NAME }} \
-            --location ${{ vars.LOCATION }} \
-            --output yaml \
-            --verbose
-
-      - name: Create Management Clsuter
+      - name: Create Resource Group and Management Cluster
         run: |
           echo  "Checking if AKS cluster of name ${{ vars.CONTROL_PLANE_NAME }} already exists"
 
@@ -51,6 +42,11 @@ jobs:
           if [ $? -eq 0 ]; then          
             echo "AKS cluster ${{ vars.CONTROL_PLANE_NAME }} already exists"
           else
+            az group create \
+              --name ${{ vars.RESOURCE_GROUP_NAME }} \
+              --location ${{ vars.LOCATION }} \
+              --output yaml \
+              --verbose
             az aks create \
               --name ${{ vars.CONTROL_PLANE_NAME }} \
               --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
