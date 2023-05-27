@@ -70,10 +70,8 @@ jobs:
         run: |
           az aks get-credentials -n ${{ vars.CONTROL_PLANE_NAME }} -g ${{ vars.RESOURCE_GROUP_NAME }}
 
-          # Check if the secret alrady exists and if it does skip creating it
-          kubectl get secret "$AZURE_CLUSTER_IDENTITY_SECRET_NAME" --namespace "$AZURE_CLUSTER_IDENTITY_SECRET_NAMESPACE"
-          
-          if [ $? -eq 0 ]; then
+          # Check if the secret already exists and if it does skip creating it and installing CAPZ
+          if kubectl get secret "$AZURE_CLUSTER_IDENTITY_SECRET_NAME" --namespace "$AZURE_CLUSTER_IDENTITY_SECRET_NAMESPACE"; then
             echo "Secret $AZURE_CLUSTER_IDENTITY_SECRET_NAME already exists"
           else
             # Create a secret to include the password of the Service Principal identity created in Azure
